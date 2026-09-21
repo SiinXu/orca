@@ -3,6 +3,12 @@ import type { SubprocessHandle } from './session-subprocess-handle'
 import { TerminalHost, type TerminalHostOptions } from './terminal-host'
 
 vi.mock('../pty-descendant-termination', () => ({ killWithDescendantSweep: vi.fn() }))
+vi.mock('../pty-descendant-tree-reap', () => ({
+  reapDescendantTree: async (_pid: number, killRoot: () => void) => {
+    killRoot()
+    return 'exited' as const
+  }
+}))
 
 function createMockSubprocess(): SubprocessHandle {
   let onExitCb: ((code: number) => void) | null = null
