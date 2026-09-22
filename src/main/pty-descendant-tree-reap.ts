@@ -78,7 +78,8 @@ export async function reapDescendantTree(
   }
   if (snapshot.descendants.length === 0) {
     killRoot()
-    return 'exited'
+    // A walk with no observed root cannot see descendants that already reparented.
+    return snapshot.root ? 'exited' : 'unverifiable'
   }
 
   // Signal descendants under identity revalidation, then kill the root while

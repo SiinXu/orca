@@ -42,6 +42,19 @@ describe('reapDescendantTree', () => {
     expect(killRoot).toHaveBeenCalledOnce()
   })
 
+  it('returns unverifiable when the POSIX table omits the root row', async () => {
+    Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
+    const killRoot = vi.fn()
+    // Root 10 is absent. A row still parented on that pid is a reuse coincidence,
+    // not a descendant this walk is allowed to treat as evidence.
+    const readTable = vi.fn(async () => table([row(20, 1, 20), row(21, 10, 21)]))
+
+    await expect(
+      reapDescendantTree(10, killRoot, { readTable, verifyMs: 50, graceMs: 10, timeoutMs: 20 })
+    ).resolves.toBe('unverifiable')
+    expect(killRoot).toHaveBeenCalledOnce()
+  })
+
   it('returns unverifiable when the POSIX process table cannot be read', async () => {
     Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
     const killRoot = vi.fn()
